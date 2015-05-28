@@ -144,7 +144,7 @@ def get_documenter(obj, parent):
     belongs to.
     """
     from sphinx.ext.autodoc import AutoDirective, DataDocumenter, \
-         ModuleDocumenter
+        ModuleDocumenter
 
     if inspect.ismodule(obj):
         # ModuleDocumenter.can_document_member always returns False
@@ -206,6 +206,9 @@ class Autosummary(Directive):
 
         if 'toctree' in self.options:
             suffix = env.config.source_suffix
+            print("Printing 'source_suffix': %s (type: %s)" % (suffix,
+                                                               type(suffix)))
+            suffix = '.rst'
             dirname = posixpath.dirname(env.docname)
 
             tree_prefix = self.options['toctree'].strip()
@@ -222,7 +225,7 @@ class Autosummary(Directive):
 
             tocnode = addnodes.toctree()
             tocnode['includefiles'] = docnames
-            tocnode['entries'] = [(None, docname) for docname in docnames]
+            tocnode['entries'] = [(None, docname_) for docname_ in docnames]
             tocnode['maxdepth'] = -1
             tocnode['glob'] = None
 
@@ -512,6 +515,9 @@ def process_generate_options(app):
     genfiles = app.config.autosummary_generate
 
     ext = app.config.source_suffix
+    print("Printing 'source_suffix': %s (type: %s)" % (ext,
+                                                       type(ext)))
+    ext = '.rst'
     # Sometimes readthedocs messes with this setting.
     if isinstance(ext, list):
         ext = ext[0]
