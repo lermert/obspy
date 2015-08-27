@@ -479,6 +479,18 @@ class TauPyModelTestCase(unittest.TestCase):
                     self.assertEqual(round(arrival.ray_param_sec_degree, 2),
                                      round(ray_param, 2))
 
+    def test_buried_receiver(self):
+        """
+        Simple test for a buried receiver.
+        """
+        m = TauPyModel(model="iasp91")
+        arrivals = m.get_travel_times(
+            source_depth_in_km=10.0, distance_in_degree=90.0,
+            receiver_depth_in_km=50,
+            phase_list=["P", "PP", "S"])
+
+        self._compare_arrivals_with_file(arrivals, "buried_receivers.txt")
+
 
 def suite():
     return unittest.makeSuite(TauPyModelTestCase, 'test')
