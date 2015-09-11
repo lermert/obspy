@@ -33,21 +33,21 @@ def to_corr(data):
         stats_b = Stats()
         stats_b.sampling_rate = st.sampling_rate
 
-        stats_b.network=str(st.sac['kuser0']).strip()
+        stats_b.network = str(st.sac['kuser0']).strip()
         if stats_b.network.startswith('-12345') is True:
-            stats_b.network=''
+            stats_b.network = ''
 
-        stats_b.station=str(st.sac['kevnm']).strip()
+        stats_b.station = str(st.sac['kevnm']).strip()
         if stats_b.station.startswith('-12345') is True:
-            stats_b.station=''
+            stats_b.station = ''
 
-        stats_b.location=str(st.sac['kuser1']).strip()
+        stats_b.location = str(st.sac['kuser1']).strip()
         if stats_b.location.startswith('-12345') is True:
-            stats_b.location=''
+            stats_b.location = ''
 
-        stats_b.channel=str(st.sac['kuser2']).strip()
+        stats_b.channel = str(st.sac['kuser2']).strip()
         if stats_b.channel.startswith('-12345') is True:
-            stats_b.channel=''
+            stats_b.channel = ''
 
         nwins = st.sac['user0'] if st.sac['user0'] > 0 else 1
         corrtype = st.sac.kt8

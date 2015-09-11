@@ -1,6 +1,27 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
+============================================================================
+Open questions / To be included / Suggested improvements:
+
+-whether to include the station-station distance in the correlation object
+(not necessary but very convenient: however, requires knowledge of station
+coordinates, which are not in MSEED header --> metadata required; or default
+to some strange value?)
+
+- how to handle stacking across different locations
+
+-what's the contiguous array problem with classical cross correlation?
+
+- more preprocessing steps... --> Then the correlations will have to be
+'informed' about what preprocessing has been done, i. e. include in stats
+
+- phase weighted stack...
+============================================================================
+
+============================================================================
+Correlation (1 window)
+============================================================================
 """
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
@@ -14,28 +35,6 @@ import matplotlib.pyplot as plt
 
 import obspy
 from obspy.core.util.base import _get_function_from_entry_point
-from obspy.noise.correlation_functions import phase_xcorr, classic_xcorr
-# ============================================================================
-# Open questions / To be included / Suggested improvements:
-
-# -whether to include the station-station distance in the correlation object
-# (not necessary but very convenient: however, requires knowledge of station
-# coordinates, which are not in MSEED header --> metadata required; or default
-# to some strange value?)
-
-# - how to handle stacking across different locations
-
-# -what's the contiguous array problem with classical cross correlation?
-
-# - more preprocessing steps... --> Then the correlations will have to be
-# 'informed' about what preprocessing has been done, i. e. include in stats
-
-# - phase weighted stack...
-# ============================================================================
-
-# ============================================================================
-# Correlation (1 window)
-# ============================================================================
 
 
 class Correlation(object):
@@ -469,7 +468,6 @@ class CorrelationStream(object):
             msg = 'Invalid format for saving: formats are SAC, asdf'
             raise ValueError(msg)
 
-
     def stack(self, station1=None, station2=None, location1=None,
               location2=None, channel1=None, channel2=None, n=None,
               noloczeroloc=False):
@@ -768,7 +766,6 @@ def correlate_trace(trace_a, trace_b, max_lag, correlation_type, **kwargs):
     if trace_a.stats.npts != trace_b.stats.npts:
         msg = "Not the same amount of samples."
         raise ValueError(msg)
-
 
     correlation_type = correlation_type.lower()
     # retrieve function call from entry points
