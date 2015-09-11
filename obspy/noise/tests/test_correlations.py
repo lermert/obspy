@@ -16,6 +16,7 @@ class CorrelationsTestCase(unittest.TestCase):
     """
     Test suite for obspy.correlations
     """
+
     def setUp(self):
         self.path = os.path.dirname(os.path.abspath(inspect.getfile(
             inspect.currentframe())))
@@ -25,7 +26,7 @@ class CorrelationsTestCase(unittest.TestCase):
         """
         Test auto-phase-correlation of sine wave.
         """
-        sine1 = np.sin(np.linspace(0, 100*np.pi, 10000))
+        sine1 = np.sin(np.linspace(0, 100 * np.pi, 10000))
         pcc = correlation_functions.phase_xcorr(sine1, sine1, 300)
 
         # Is the length of the array correct
@@ -35,9 +36,9 @@ class CorrelationsTestCase(unittest.TestCase):
         self.assertEqual(pcc[300], pcc.max())
 
         # Is the maximum value at lag zero correct
-        self.assertTrue(abs(pcc[300]-1.0) < 1e-9)
-        self.assertTrue(abs(pcc[200]+1.0) < 0.01)
-        self.assertTrue(abs(pcc[400]+1.0) < 0.01)
+        self.assertTrue(abs(pcc[300] - 1.0) < 1e-9)
+        self.assertTrue(abs(pcc[200] + 1.0) < 0.01)
+        self.assertTrue(abs(pcc[400] + 1.0) < 0.01)
 
         # Is the autocorrelation symmetric to lag 0
         # XXX: still missing
