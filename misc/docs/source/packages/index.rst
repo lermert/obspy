@@ -13,6 +13,7 @@ The functionality is provided through the following packages:
    obspy.core
    obspy.geodetics
    obspy.imaging
+   obspy.noise
    obspy.realtime
    obspy.signal
    obspy.taup

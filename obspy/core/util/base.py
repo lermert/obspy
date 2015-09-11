@@ -31,7 +31,7 @@ from obspy.core.util.misc import to_int_or_zero
 
 
 # defining ObsPy modules currently used by runtests and the path function
-DEFAULT_MODULES = ['core', 'db', 'geodetics', 'imaging',
+DEFAULT_MODULES = ['core', 'db', 'geodetics', 'imaging', 'noise',
                    'io.ah', 'io.ascii', 'io.cmtsolution', 'io.cnv', 'io.css',
                    'io.datamark', 'io.gse2', 'io.json', 'io.kinemetrics',
                    'io.mseed', 'io.ndk', 'io.nlloc', 'io.pdas', 'io.pde',
