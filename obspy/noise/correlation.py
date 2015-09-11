@@ -40,7 +40,7 @@ from obspy.noise.correlation_functions import phase_xcorr, classic_xcorr
 
 class Correlation(object):
     def __init__(self, stats_a=None, stats_b=None,
-                 correlation=None, max_lag=0, correlation_type=None,
+                 correlation=None, max_lag=0, correlation_type="None",
                  min_lag=None, n_stack=0, dist=0.0, locked=False,
                  correlation_options=None):
 
@@ -109,22 +109,14 @@ class Correlation(object):
         return self
 
     def __iadd__(self, other):
-
         self = self + other
         return self
 
     def __str__(self):
-
-        if self.correlation_type == 'ccc':
-            corrtype = 'cross-correlation '
-        elif self.correlation_type == 'pcc':
-            corrtype = 'phase-correlation '
-        else:
-            corrtype = 'No correlation '
         Fs = " | %(sampling_rate)5.2f Hz, "
         lag = "Max. lag %g seconds"
         wins = '  |  %g windows'
-        out = corrtype + self.id + Fs % (self.stats_a) + \
+        out = self.correlation_type + self.id + Fs % (self.stats_a) + \
             lag % (self.max_lag) + wins % (self.n_stack)
         return out
 
@@ -139,7 +131,6 @@ class Correlation(object):
     id = property(getId)
 
     def plot(self):
-
         if self.min_lag == 0 or self.min_lag is None:
             # id = "%(network)s.%(station)s.%(location)s.%(channel)s"
 
@@ -355,17 +346,18 @@ class Correlation(object):
         cs = CorrelationStream(correlations=[self])
         cs.save(filename=filename, format=format)
 
-# ============================================================================
-# Correlation stream ('container for correlations')
-# one can add any correlation to this
-# Further functions needed:
-# -plot (correlation traces and 'record section')
-# -(linear, nonlin) stack
-# -save
-# ============================================================================
-
 
 class CorrelationStream(object):
+    """
+    Correlation stream ('container for correlations')
+    one can add any correlation to this
+
+    Further functions needed:
+
+      -plot (correlation traces and 'record section')
+      -(linear, nonlin) stack
+      -save
+    """
     def __init__(self, correlations=None):
 
         # Use a 2-D array too? So far a 1-D list object used
@@ -449,11 +441,11 @@ class CorrelationStream(object):
             msg = 'Invalid format for saving: formats are SAC, asdf'
             raise ValueError(msg)
 
-# A proper solution is needed here. This is just temporary..
 
     def stack(self, station1=None, station2=None, location1=None,
               location2=None, channel1=None, channel2=None, n=None,
               noloczeroloc=False):
+        # XXX: A proper solution is needed here. This is just temporary..
         if n is None:
             n = len(self.__correlations) + 1
         stack = Correlation()
