@@ -12,7 +12,7 @@ import warnings
 import numpy as np
 import matplotlib.pyplot as plt
 
-from obspy.core import Trace
+import obspy
 from obspy.core.util.base import _getFunctionFromEntryPoint
 from obspy.noise.correlation_functions import phase_xcorr, classic_xcorr
 # ============================================================================
@@ -352,26 +352,8 @@ class Correlation(object):
 
     def save(self, filename, format):
 
-        if format == 'SAC':
-            tr = Trace(data=self.correlation)
-            tr.stats = self.stats_a
-
-            tr.stats.sac['kt8'] = self.correlation_type \
-                if self.correlation_type else ''
-            tr.stats.sac['user0'] = self.n_stack
-            tr.stats.sac['b'] = -self.max_lag
-            tr.stats.sac['e'] = self.max_lag
-            tr.stats.sac['kevnm'] = self.stats_b.station
-            tr.stats.sac['dist'] = self.dist
-            tr.stats.sac['kuser0'] = self.stats_b.network
-            tr.stats.sac['kuser1'] = self.stats_b.location
-            tr.stats.sac['kuser2'] = self.stats_b.channel
-            tr.write(filename, format='SAC')
-        elif format == 'asdf':
-            print('Not implemented yet.')
-        else:
-            msg = 'Invalid format for saving: formats are SAC, asdf'
-            raise ValueError(msg)
+        cs = CorrelationStream(correlations=[self])
+        cs.save(filename=filename, format=format)
 
 # ============================================================================
 # Correlation stream ('container for correlations')
@@ -441,6 +423,31 @@ class CorrelationStream(object):
                 'CorrelationStack.__str__(extended=True))" to print ' + \
                 'all correlations]'
         return out
+
+    def save(self, filename, format):
+        if format == 'SAC':
+            st = obspy.Stream()
+            for corr in self.__correlations:
+                tr = obspy.Trace(data=corr.correlation)
+                tr.stats = corr.stats_a
+
+                tr.stats.sac['kt8'] = corr.correlation_type \
+                    if corr.correlation_type else ''
+                tr.stats.sac['user0'] = corr.n_stack
+                tr.stats.sac['b'] = -corr.max_lag
+                tr.stats.sac['e'] = corr.max_lag
+                tr.stats.sac['kevnm'] = corr.stats_b.station
+                tr.stats.sac['dist'] = corr.dist
+                tr.stats.sac['kuser0'] = corr.stats_b.network
+                tr.stats.sac['kuser1'] = corr.stats_b.location
+                tr.stats.sac['kuser2'] = corr.stats_b.channel
+                st.traces.append(tr)
+            st.write(filename, format='SAC')
+        elif format == 'asdf':
+            print('Not implemented yet.')
+        else:
+            msg = 'Invalid format for saving: formats are SAC, asdf'
+            raise ValueError(msg)
 
 # A proper solution is needed here. This is just temporary..
 
