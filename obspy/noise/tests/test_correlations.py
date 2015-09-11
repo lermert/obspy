@@ -27,7 +27,7 @@ class CorrelationsTestCase(unittest.TestCase):
         Test auto-phase-correlation of sine wave.
         """
         sine1 = np.sin(np.linspace(0, 100 * np.pi, 10000))
-        pcc = correlation_functions.phase_xcorr(sine1, sine1, 300)
+        pcc = correlation_functions.phase_xcorr(sine1, sine1, 300)[0]
 
         # Is the length of the array correct
         self.assertEqual(len(pcc), 601)

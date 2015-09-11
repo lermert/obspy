@@ -39,7 +39,7 @@ def phase_xcorr(data1, data2, max_lag, nu=1, min_lag=0, **kwargs):
         pxc = np.ma.array(pxc)
         pxc[-min_lag:min_lag] = True
 
-    return [pxc]
+    return pxc, []
 
 
 def classic_xcorr(data1, data2, max_lag, **kwargs):
@@ -50,7 +50,7 @@ def classic_xcorr(data1, data2, max_lag, **kwargs):
 
     xcorr = cross_correlation.xcorr(data1.data, data2.data, max_lag, True)[2]
 
-    return [xcorr]
+    return xcorr, []
 
 
 def cross_covar(data1, data2, max_lag, normalize_traces=False,
