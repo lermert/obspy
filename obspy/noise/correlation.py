@@ -302,7 +302,7 @@ class Correlation(object):
         if side not in side_valid:
             raise ValueError("'side' has to be one of: %s" % side_valid)
         # retrieve function call from entry points
-        func = _getFunctionFromEntryPoint('taper', type)
+        func = _get_function_from_entry_point('taper', type)
         # store all constraints for maximum taper length
         max_half_lenghts = []
         if max_percentage is not None:
@@ -769,7 +769,7 @@ def correlate_trace(trace_a, trace_b, max_lag, correlation_type, **kwargs):
 
     correlation_type = correlation_type.lower()
     # retrieve function call from entry points
-    func = _getFunctionFromEntryPoint('cross_correlation', type)
+    func = _get_function_from_entry_point('cross_correlation', type)
 
     mlag = max_lag / trace_a.stats.delta
     mlag = int(mlag)

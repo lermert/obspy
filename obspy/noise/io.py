@@ -14,8 +14,17 @@ def to_corr(data):
     if isinstance(data, obspy.Trace):
         data = obspy.Stream(traces=[data])
     elif not isinstance(data, obspy.Stream):
-        msg = 'Data must be Stream or Trace.'
-        raise TypeError(msg)
+        try:
+            import pyasdf
+        except ImportError:
+            msg = 'Data must be Stream or Trace.'
+            raise TypeError(msg)
+
+        if isinstance(data, pyasdf.ASDFDataSet):
+            pass
+        else:
+            msg = 'Data must be Stream, Trace, or an ASDF data set.'
+            raise TypeError(msg)
 
     corrstream = CorrelationStream()
 
@@ -23,10 +32,10 @@ def to_corr(data):
         st = tr.stats
 
         stats_a = Stats()
-        stats_a.network = stats_a.network
-        stats_a.station = stats_a.station
-        stats_a.location = stats_a.location
-        stats_a.channel = stats_a.channel
+        stats_a.network = st.network
+        stats_a.station = st.station
+        stats_a.location = st.location
+        stats_a.channel = st.channel
         stats_a.sampling_rate = st.sampling_rate
         stats_a.starttime = st.starttime
 
@@ -63,3 +72,7 @@ def to_corr(data):
 
         corrstream += corr
     return corrstream
+
+
+def asdf_to_corr(ds):
+    pass
