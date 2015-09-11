@@ -16,6 +16,7 @@ def to_corr(data):
     elif not isinstance(data, obspy.Stream):
         try:
             import pyasdf
+            return asdf_to_corr(data)
         except ImportError:
             msg = 'Data must be Stream or Trace.'
             raise TypeError(msg)
@@ -75,4 +76,15 @@ def to_corr(data):
 
 
 def asdf_to_corr(ds):
-    pass
+    if "CrossCorrelation" not in ds.auxiliary_data.list():
+        raise ValueError("ASDF file contains no adjoint sources.")
+
+    cc = ds.auxiliary_data.CrossCorrelation
+
+    for corr in cc.list():
+        corr = cc[corr]
+
+        corr_obj = Correlation()
+        corr_obj
+
+
