@@ -13,7 +13,7 @@ from obspy.noise.header import clibnoise
 from obspy.signal import cross_correlation
 
 
-def phase_xcorr(data1, data2, max_lag, nu=1, min_lag=0):
+def phase_xcorr(data1, data2, max_lag, nu=1, min_lag=0, **kwargs):
     """
     Phase cross correlation (Schimmel 1999), obtained with a
     variable window length
@@ -42,7 +42,7 @@ def phase_xcorr(data1, data2, max_lag, nu=1, min_lag=0):
     return [pxc]
 
 
-def classic_xcorr(data1, data2, max_lag):
+def classic_xcorr(data1, data2, max_lag, **kwargs):
     """
     Classical (geometrically normalized) cross-correlation as contained in
     (uses :func:`obspy.signal.cross_correlation.xcorr`).
@@ -53,7 +53,8 @@ def classic_xcorr(data1, data2, max_lag):
     return [xcorr]
 
 
-def cross_covar(data1, data2, max_lag_samples, normalize_traces=False):
+def cross_covar(data1, data2, max_lag, normalize_traces=False,
+                **kwargs):
     """
     An alternative to the classical cross-correlation, this function uses
     :func:`numpy.correlate`, operating in the frequency domain and applying
@@ -99,8 +100,8 @@ def cross_covar(data1, data2, max_lag_samples, normalize_traces=False):
     ccv = np.correlate(data1, data2, mode='full')
 
     # Cut out the desired samples from the middle...
-    i1 = (len(ccv) - (2 * max_lag_samples + 1)) / 2
-    i2 = i1 + 2 * max_lag_samples + 1
+    i1 = (len(ccv) - (2 * max_lag + 1)) / 2
+    i2 = i1 + 2 * max_lag + 1
 
     params = (ren1, ren2, rms1, rms2, rng1, rng2)
 

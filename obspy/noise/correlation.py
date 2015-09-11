@@ -742,13 +742,21 @@ def correlate_trace(trace_a, trace_b, max_lag, correlation_type, **kwargs):
         msg = "Not the same amount of samples."
         raise ValueError(msg)
 
+
+    correlation_type = correlation_type.lower()
+    # retrieve function call from entry points
+    func = _getFunctionFromEntryPoint('cross_correlation', type)
+
     mlag = max_lag / trace_a.stats.delta
     mlag = int(mlag)
-    if correlation_type == "pcc":
-        corr = phase_xcorr(trace_a.data, trace_b.data, mlag,
-                           kwargs.get("nu", 1), kwargs.get("min_lag", 0))[0]
-    elif correlation_type == "ccc":
-        corr = classic_xcorr(trace_a.data, trace_b.data, mlag)[0]
+
+    corr = func(trace_a.data, trace_b.data, mlag, **kwargs)
+
+    # if correlation_type == "pcc":
+    #     corr = phase_xcorr(trace_a.data, trace_b.data, mlag,
+    #                        kwargs.get("nu", 1), kwargs.get("min_lag", 0))[0]
+    # elif correlation_type == "ccc":
+    #     corr = classic_xcorr(trace_a.data, trace_b.data, mlag)[0]
     # elif correlation_type == "ccv":
     #    corr_result = cross_covar(data1, data2, max_lag_samples,\
     #    kwargs.get("normalize_traces", False))
