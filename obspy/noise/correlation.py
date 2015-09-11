@@ -13,7 +13,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 import obspy
-from obspy.core.util.base import _getFunctionFromEntryPoint
+from obspy.core.util.base import _get_function_from_entry_point
 from obspy.noise.correlation_functions import phase_xcorr, classic_xcorr
 # ============================================================================
 # Open questions / To be included / Suggested improvements:
@@ -197,7 +197,7 @@ class Correlation(object):
         """
         type = type.lower()
         # retrieve function call from entry points
-        func = _getFunctionFromEntryPoint('filter', type)
+        func = _get_function_from_entry_point('filter', type)
         # filtering
         # the options dictionary is passed as kwargs to the function that is
         # mapped according to the filter_functions dictionary
@@ -342,7 +342,6 @@ class Correlation(object):
         return self
 
     def save(self, filename, format):
-
         cs = CorrelationStream(correlations=[self])
         cs.save(filename=filename, format=format)
 
@@ -423,8 +422,7 @@ class CorrelationStream(object):
                 tr = obspy.Trace(data=corr.correlation)
                 tr.stats = corr.stats_a
 
-                tr.stats.sac['kt8'] = corr.correlation_type \
-                    if corr.correlation_type else ''
+                tr.stats.sac['kt8'] = corr.correlation_type
                 tr.stats.sac['user0'] = corr.n_stack
                 tr.stats.sac['b'] = -corr.max_lag
                 tr.stats.sac['e'] = corr.max_lag
@@ -436,7 +434,37 @@ class CorrelationStream(object):
                 st.traces.append(tr)
             st.write(filename, format='SAC')
         elif format == 'asdf':
-            print('Not implemented yet.')
+            import pyasdf
+
+            ds = pyasdf.ASDFDataSet(filename)
+
+            for corr in self.__correlations:
+                parameters = {
+                    "correlation_type": corr.correlation_type,
+                    "number_of_stacked_windows": corr.n_stack,
+                    "max_lag_in_s": corr.max_lag,
+                    "seed_id_a": "%s.%s.%s.%s" % (
+                        corr.stats_a.network, corr.stats_a.station,
+                        corr.stats_a.location, corr.stats_a.channel),
+                    "seed_id_b": "%s.%s.%s.%s" % (
+                        corr.stats_b.network, corr.stats_b.station,
+                        corr.stats_b.location, corr.stats_b.channel),
+                    "distance_in_meters": corr.dist,
+                    "sampling_rate": corr.stats_a.sampling_rate
+                }
+
+                tag = "CC_%s__%s__%s" % (
+                    parameters["seed_id_a"].replace(".", "_"),
+                    parameters["seed_id_b"].replace(".", "_"),
+                    corr.correlation_type)
+                tag = tag.strip()
+
+                ds.add_auxiliary_data(
+                    data=corr.correlation,
+                    data_type="CrossCorrelation",
+                    tag=tag, parameters=parameters)
+            del ds
+
         else:
             msg = 'Invalid format for saving: formats are SAC, asdf'
             raise ValueError(msg)
