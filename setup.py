@@ -519,6 +519,17 @@ def configuration(parent_package="", top_path=None):
     config.add_extension(_get_lib_name("signal", add_extension_suffix=False),
                          files, **kwargs)
 
+    # NOISE
+    path = os.path.join("obspy", "noise", "src")
+    files = glob.glob(os.path.join(path, "*.c"))
+    # compiler specific options
+    kwargs = {}
+    if IS_MSVC:
+        # get export symbols
+        kwargs['export_symbols'] = export_symbols(path, 'libnoise.def')
+    config.add_extension(_get_lib_name("noise", add_extension_suffix=False),
+                         files, **kwargs)
+
     # EVALRESP
     path = os.path.join("obspy", "signal", "src")
     if EXTERNAL_LIBS:
