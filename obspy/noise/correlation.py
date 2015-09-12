@@ -38,14 +38,11 @@ from obspy.core.util.base import _get_function_from_entry_point
 
 
 class Correlation(object):
-    def __init__(self, stats_a=None, stats_b=None,
-                 correlation=None, max_lag=0, correlation_type="None",
-                 min_lag=None, n_stack=0, dist=0.0, locked=False,
-                 correlation_options=None):
-
-        if correlation is None:
-            correlation = np.array([])
-
+    def __init__(self, correlation, stats_a, stats_b=None,
+                 max_lag=0, correlation_type=None,
+                 min_lag=None, n_stack=0, dist=0.0,
+                 correlation_options=None, locked=False):
+        
         _data_sanity_checks(correlation)
 
         self.stats_a = stats_a
@@ -53,27 +50,73 @@ class Correlation(object):
         self.correlation = correlation
         self.max_lag = max_lag
         self.min_lag = min_lag
-        self.correlation_type = correlation_type
+        if correlation_type is not None:
+            self.correlation_type = correlation_type
+        else:
+            self.correlation_type = 'Correlation'
         self.n_stack = n_stack
-        self.dist = dist
-        # A locking parameter is useful for all nonlinear stacks
-        # (of which none are implemented yet)
         self.__locked = locked
+        # A locking parameter is useful to warn when a stack is stacked again.
+        self.dist = dist
+    
         self.correlation_options = correlation_options \
             if correlation_options else {}
         # Not sure if it makes more sense that 'add' creates a stack or a
-        # correlation stream.  Should introduce creating a stream if IDs don't
-        # match (should now just raise error) The addition procedure is not yet
-        # well-solved I find. Hoping for better ideas here.
+        # correlation stream. 
+        
+    def __eq__(self, other):
+        # Check whether two correlation objects are the same
+        
+        if self.stats_a == None:
+            return False
+        
+        if self.stats_b == None:
+            return False
+        
+        if self.stats_a != other.stats_a:
+            return False
+        
+        if self.stats_b != other.stats_b:
+            return False
+        
+        if self.correlation != other.correlation:
+            return False
+        
+        return True
+        
+    
+    def allow_stack(self,other):
+        
+        if self.stats_b is None:
+            msg = ('Unknown stats: Ids (net.sta.loc.cha)'
+                    ' of both original traces and their sampling rates'
+                    ' must be provided for stacking.')
+            raise ValueError(msg)
+        
+        if self.stats_a.sampling_rate != other.stats_a.sampling_rate:
+            return False
+        if self.id != other.id:
+            return False
+        if self.stats_a.npts != other.stats_a.npts:
+            return False
+        if self.correlation_type is None:
+            msg =('Warning: Unknown correlation type. Proceed with caution.')
+            warn(msg)
+        if self.correlation_type != other.correlation_type:
+            return False
+            
+        return True
+            
 
     def __add__(self, other):
         # Add a correlation to a stack.
 
-        if self.__locked:
-            msg = "Stack already locked."
+        if self.__locked is True:
+            msg = 'Stack is already locked.'
             raise ValueError(msg)
-
+        
         if not isinstance(other, Correlation):
+            print(other)
             msg = ('Can only add single Correlation object to '
                    'correlation stack so far.')
             raise TypeError(msg)
@@ -92,10 +135,7 @@ class Correlation(object):
 
         else:
 
-            if len(self.correlation) == len(other.correlation) and \
-                    self.max_lag == other.max_lag and \
-                    self.stats_a.station == other.stats_a.station and \
-                    self.stats_b.station == other.stats_b.station:
+            if self.allow_stack(other):
                 self.correlation += other.correlation
                 # print("Old stack lengths %g and %g"
                 # %(self.n_stack,other.n_stack))
@@ -115,7 +155,8 @@ class Correlation(object):
         Fs = " | %(sampling_rate)5.2f Hz, "
         lag = "Max. lag %g seconds"
         wins = '  |  %g windows'
-        out = self.correlation_type + self.id + Fs % (self.stats_a) + \
+        
+        out = self.correlation_type + ' | ' + self.id + Fs % (self.stats_a) + \
             lag % (self.max_lag) + wins % (self.n_stack)
         return out
 
@@ -377,8 +418,10 @@ class CorrelationStream(object):
         return self.__class__(correlations=correlations)
 
     def __iadd__(self, other):
-        if isinstance(other, Correlation):
+        
+        if isinstance(other, Correlation) is True:
             other = CorrelationStream(correlations=other)
+        
         if not isinstance(other, CorrelationStream):
             raise TypeError
         self.__correlations += other.__correlations
@@ -471,23 +514,36 @@ class CorrelationStream(object):
     def stack(self, station1=None, station2=None, location1=None,
               location2=None, channel1=None, channel2=None, n=None,
               noloczeroloc=False):
-        # XXX: A proper solution is needed here. This is just temporary..
+        self.sort()
+        
+        # n parameter serves to limit the stack, e. g. 'Maximum ten windows'
         if n is None:
-            n = len(self.__correlations) + 1
-        stack = Correlation()
+            n = len(self.__correlations)
+        
+        stacks = []
+        
         # perform a selection
         for corr in self.select(station1, station2, location1,
                                 location2, channel1, channel2,
-                                noloczeroloc).__correlations[0:n]:
-            try:
-                # stacks retaining the stats and updating the n_stack
-                stack += corr
-
-            except ValueError:
-                print("At least one does not match: max. lag, delta, station1,"
-                      " station2")
-                continue
-        return stack
+                                noloczeroloc=noloczeroloc).__correlations[0:n]:
+            if 'newstack' not in locals():
+                newstack = corr
+            elif newstack.allow_stack(corr):
+                newstack += corr
+            else:
+                stacks.append(newstack)
+                newstack = corr
+            #try:
+            #    # stacks retaining the stats and updating the n_stack
+            #    stacks += corr
+            #
+            #except ValueError:
+            #    print("At least one does not match: max. lag, delta, station1,"
+            #          " station2")
+            #    continue
+        if 'newstack' in locals():
+            stacks.append(newstack)
+        return self.__class__(correlations=stacks)
 
     def select(self, station1=None, station2=None, location1=None,
                location2=None, channel1=None, channel2=None, min_dayrms=None,
@@ -497,8 +553,9 @@ class CorrelationStream(object):
         # Location, channel can be a concatenation of strings, like '0010'
         correlations = []
 
-        if noloczeroloc is True:
+        if noloczeroloc is True and location1 == '00':
             location1 = [location1, '']
+        if noloczeroloc is True and location2 == '00':
             location2 = [location2, '']
 
         for corr in self.__correlations:
