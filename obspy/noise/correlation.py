@@ -474,6 +474,51 @@ class CorrelationStream(object):
                 tr.stats.sac['kuser1'] = corr.stats_b.location
                 tr.stats.sac['kuser2'] = corr.stats_b.channel
                 st.traces.append(tr)
+                
+            if correlation_options != {}:
+                try:
+                    tr.stats.sac.user1 = correlation_options['window_length']
+                except:
+                    pass    
+                try:
+                    tr.stats.sac.kt0 = correlation_options['start_date']
+                except:
+                    pass
+                try:
+                    tr.stats.sac.kt1 = correlation_options['end_date']
+                except:
+                    pass   
+                try:
+                    tr.stats.sac.user2 = correlation_options['overlap']
+                except:
+                    pass
+                    
+                try:
+                    tr.stats.sac.user3 = correlation_options['rms_a']
+                except:
+                    pass    
+                try:
+                    tr.stats.sac.user4 = correlation_options['rms_b']
+                except:
+                    pass
+                try:
+                    tr.stats.sac.user5 = correlation_options['signal_energy_a']
+                except:
+                    pass   
+                try:
+                    tr.stats.sac.user6 = correlation_options['signal_energy_b']
+                except:
+                    pass
+                try:
+                    tr.stats.sac.user7 = correlation_options['signal_range_a']
+                except:
+                    pass   
+                try:
+                    tr.stats.sac.user8 = correlation_options['signal_range_b']
+                except:
+                    pass    
+                    
+                    
             st.write(filename, format='SAC')
         elif format == 'asdf':
             import pyasdf
