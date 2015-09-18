@@ -42,7 +42,7 @@ class Correlation(object):
                  max_lag=0, correlation_type=None,
                  min_lag=None, n_stack=0, dist=0.0,
                  correlation_options=None, locked=False):
-        
+
         _data_sanity_checks(correlation)
 
         self.stats_a = stats_a
@@ -58,41 +58,41 @@ class Correlation(object):
         self.__locked = locked
         # A locking parameter is useful to warn when a stack is stacked again.
         self.dist = dist
-    
+
         self.correlation_options = correlation_options \
             if correlation_options else {}
         # Not sure if it makes more sense that 'add' creates a stack or a
-        # correlation stream. 
-        
+        # correlation stream.
+
     def __eq__(self, other):
         # Check whether two correlation objects are the same
-        
+
         if self.stats_a == None:
             return False
-        
+
         if self.stats_b == None:
             return False
-        
+
         if self.stats_a != other.stats_a:
             return False
-        
+
         if self.stats_b != other.stats_b:
             return False
-        
+
         if self.correlation != other.correlation:
             return False
-        
+
         return True
-        
-    
+
+
     def allow_stack(self,other):
-        
+
         if self.stats_b is None:
             msg = ('Unknown stats: Ids (net.sta.loc.cha)'
                     ' of both original traces and their sampling rates'
                     ' must be provided for stacking.')
             raise ValueError(msg)
-        
+
         if self.stats_a.sampling_rate != other.stats_a.sampling_rate:
             return False
         if self.id != other.id:
@@ -104,9 +104,9 @@ class Correlation(object):
             warn(msg)
         if self.correlation_type != other.correlation_type:
             return False
-            
+
         return True
-            
+
 
     def __add__(self, other):
         # Add a correlation to a stack.
@@ -114,7 +114,7 @@ class Correlation(object):
         if self.__locked is True:
             msg = 'Stack is already locked.'
             raise ValueError(msg)
-        
+
         if not isinstance(other, Correlation):
             print(other)
             msg = ('Can only add single Correlation object to '
@@ -155,7 +155,7 @@ class Correlation(object):
         Fs = " | %(sampling_rate)5.2f Hz, "
         lag = "Max. lag %g seconds"
         wins = '  |  %g windows'
-        
+
         out = self.correlation_type + ' | ' + self.id + Fs % (self.stats_a) + \
             lag % (self.max_lag) + wins % (self.n_stack)
         return out
@@ -418,10 +418,10 @@ class CorrelationStream(object):
         return self.__class__(correlations=correlations)
 
     def __iadd__(self, other):
-        
+
         if isinstance(other, Correlation) is True:
             other = CorrelationStream(correlations=other)
-        
+
         if not isinstance(other, CorrelationStream):
             raise TypeError
         self.__correlations += other.__correlations
@@ -474,12 +474,12 @@ class CorrelationStream(object):
                 tr.stats.sac['kuser1'] = corr.stats_b.location
                 tr.stats.sac['kuser2'] = corr.stats_b.channel
                 st.traces.append(tr)
-                
+
             if correlation_options != {}:
                 try:
                     tr.stats.sac.user1 = correlation_options['window_length']
                 except:
-                    pass    
+                    pass
                 try:
                     tr.stats.sac.kt0 = correlation_options['start_date']
                 except:
@@ -487,16 +487,16 @@ class CorrelationStream(object):
                 try:
                     tr.stats.sac.kt1 = correlation_options['end_date']
                 except:
-                    pass   
+                    pass
                 try:
                     tr.stats.sac.user2 = correlation_options['overlap']
                 except:
                     pass
-                    
+
                 try:
                     tr.stats.sac.user3 = correlation_options['rms_a']
                 except:
-                    pass    
+                    pass
                 try:
                     tr.stats.sac.user4 = correlation_options['rms_b']
                 except:
@@ -504,7 +504,7 @@ class CorrelationStream(object):
                 try:
                     tr.stats.sac.user5 = correlation_options['signal_energy_a']
                 except:
-                    pass   
+                    pass
                 try:
                     tr.stats.sac.user6 = correlation_options['signal_energy_b']
                 except:
@@ -512,13 +512,13 @@ class CorrelationStream(object):
                 try:
                     tr.stats.sac.user7 = correlation_options['signal_range_a']
                 except:
-                    pass   
+                    pass
                 try:
                     tr.stats.sac.user8 = correlation_options['signal_range_b']
                 except:
-                    pass    
-                    
-                    
+                    pass
+
+
             st.write(filename, format='SAC')
         elif format == 'asdf':
             import pyasdf
@@ -560,13 +560,13 @@ class CorrelationStream(object):
               location2=None, channel1=None, channel2=None, n=None,
               noloczeroloc=False):
         self.sort()
-        
+
         # n parameter serves to limit the stack, e. g. 'Maximum ten windows'
         if n is None:
             n = len(self.__correlations)
-        
+
         stacks = []
-        
+
         # perform a selection
         for corr in self.select(station1, station2, location1,
                                 location2, channel1, channel2,
@@ -871,12 +871,13 @@ def correlate_trace(trace_a, trace_b, max_lag, correlation_type, **kwargs):
 
     correlation_type = correlation_type.lower()
     # retrieve function call from entry points
-    func = _get_function_from_entry_point('cross_correlation', type)
+    func = _get_function_from_entry_point('cross_correlation',
+                                          type=correlation_type)
 
     mlag = max_lag / trace_a.stats.delta
     mlag = int(mlag)
 
-    corr = func(trace_a.data, trace_b.data, mlag, **kwargs)
+    corr, params = func(trace_a.data, trace_b.data, mlag, **kwargs)
 
     # if correlation_type == "pcc":
     #     corr = phase_xcorr(trace_a.data, trace_b.data, mlag,
@@ -895,13 +896,13 @@ def correlate_trace(trace_a, trace_b, max_lag, correlation_type, **kwargs):
     #    trace_b.stats['rng'] = corr_result[1][5]
     #
 
-    corr = Correlation(trace_a.stats.copy(),
-                       trace_b.stats.copy(),
+    corr = Correlation(correlation=corr,
+                       stats_a=trace_a.stats.copy(),
+                       stats_b=trace_b.stats.copy(),
                        max_lag=max_lag,
-                       correlation=corr,
                        correlation_type=correlation_type,
                        n_stack=1,
-                       correlation_options=kwargs)
+                       correlation_options=params)
 
     return CorrelationStream(correlations=corr)
 

@@ -254,6 +254,7 @@ ENTRY_POINTS = {
     'interpolate': _get_entry_points('obspy.plugin.interpolate'),
     'integrate': _get_entry_points('obspy.plugin.integrate'),
     'differentiate': _get_entry_points('obspy.plugin.differentiate'),
+    'cross_correlation': _get_entry_points('obspy.plugin.cross_correlation'),
     'waveform': _get_ordered_entry_points(
         'obspy.plugin.waveform', 'readFormat', WAVEFORM_PREFERRED_ORDER),
     'waveform_write': _get_ordered_entry_points(

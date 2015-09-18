@@ -325,7 +325,7 @@ ENTRY_POINTS = {
     'obspy.plugin.inventory.SHAPEFILE': [
         'writeFormat = obspy.io.shapefile.core:_write_shapefile',
         ],
-    'obspy.plugin.cross_correlations': [
+    'obspy.plugin.cross_correlation': [
         'phase_cc = obspy.noise.correlation_functions:phase_xcorr',
         'classical_cc = obspy.noise.correlation_functions:classic_xcorr',
         'coherence_cc = obspy.noise.correlation_functions:cross_covar'
